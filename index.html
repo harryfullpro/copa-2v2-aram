@@ -339,7 +339,68 @@
             color: #c89b3c;
         }
 
-        @media (max-width: 768px) {
+        .admin-team-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info {
+            flex: 1;
+        }
+
+        .team-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit {
+            background: #4ecdc4;
+            color: #000;
+        }
+
+        .btn-edit:hover {
+            background: #45b7b8;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .btn-delete:hover {
+            background: #ff5252;
+        }
+
+        .match-result-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-edit-result {
+            background: #ffa726;
+            color: #000;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit-result:hover {
+            background: #ff9800;
+        }
             .nav {
                 flex-direction: column;
                 gap: 1rem;
@@ -564,11 +625,36 @@
 
         <!-- Painel Admin -->
         <div id="admin" class="page">
-            <div class="admin-panel">
-                <h2>Painel do Organizador</h2>
+            <!-- Tela de Login -->
+            <div id="login-screen" class="admin-panel">
+                <h2>🔐 Login do Organizador</h2>
+                <div class="card">
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Usuário:</label>
+                            <input type="text" id="login-username" placeholder="Digite seu usuário">
+                        </div>
+                        <div class="form-group">
+                            <label>Senha:</label>
+                            <input type="password" id="login-password" placeholder="Digite sua senha">
+                        </div>
+                        <button class="btn" onclick="doLogin()">Entrar</button>
+                        <div id="login-error" style="color: #ff6b6b; margin-top: 1rem; display: none;">
+                            ❌ Usuário ou senha incorretos!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel Admin (após login) -->
+            <div id="admin-content" class="admin-panel" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Painel do Organizador</h2>
+                    <button class="btn btn-secondary" onclick="doLogout()">🚪 Sair</button>
+                </div>
                 
                 <div class="card">
-                    <h3>Cadastrar Duplas</h3>
+                    <h3>Gerenciar Duplas</h3>
                     <div class="admin-form">
                         <div class="form-group">
                             <label>Nome da Dupla:</label>
@@ -582,12 +668,19 @@
                             <label>Jogador 2:</label>
                             <input type="text" id="player2" placeholder="Nome do jogador 2">
                         </div>
-                        <button class="btn" onclick="addTeam()">Adicionar Dupla</button>
+                        <button class="btn" onclick="addTeam()" id="add-team-btn">Adicionar Dupla</button>
+                        <button class="btn btn-secondary" onclick="cancelEdit()" id="cancel-edit-btn" style="display: none;">Cancelar Edição</button>
+                    </div>
+                    
+                    <!-- Lista de Duplas Cadastradas -->
+                    <div id="teams-list" style="margin-top: 2rem;">
+                        <h4>Duplas Cadastradas:</h4>
+                        <div id="admin-teams-container"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3>Registrar Resultado do Jogo</h3>
+                    <h3>Registrar/Editar Resultado do Jogo</h3>
                     <div class="admin-form">
                         <div class="form-group">
                             <label>Selecionar Confronto:</label>
@@ -607,6 +700,12 @@
                         </div>
                         <button class="btn" onclick="registerResult()">Registrar Resultado</button>
                     </div>
+                    
+                    <!-- Histórico de Jogos -->
+                    <div style="margin-top: 2rem;">
+                        <h4>Jogos Realizados:</h4>
+                        <div id="completed-matches"></div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -623,12 +722,60 @@
         let teams = JSON.parse(localStorage.getItem('tournament_teams')) || [];
         let matches = JSON.parse(localStorage.getItem('tournament_matches')) || [];
         let results = JSON.parse(localStorage.getItem('tournament_results')) || [];
+        let editingTeamId = null;
+        let editingMatchId = null;
+        let isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
 
         // Função para salvar dados
         function saveData() {
             localStorage.setItem('tournament_teams', JSON.stringify(teams));
             localStorage.setItem('tournament_matches', JSON.stringify(matches));
             localStorage.setItem('tournament_results', JSON.stringify(results));
+        }
+
+        // Sistema de Login
+        function doLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (username === 'tiago' && password === 'sabrinacarpenter') {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                isLoggedIn = true;
+                showAdminContent();
+                document.getElementById('login-error').style.display = 'none';
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            }
+        }
+
+        function doLogout() {
+            sessionStorage.removeItem('admin_logged_in');
+            isLoggedIn = false;
+            showLoginScreen();
+        }
+
+        function showAdminContent() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            updateAdminTeamsList();
+            updateCompletedMatches();
+        }
+
+        function showLoginScreen() {
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('admin-content').style.display = 'none';
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+        }
+
+        function checkAdminAccess() {
+            if (isLoggedIn) {
+                showAdminContent();
+            } else {
+                showLoginScreen();
+            }
         }
 
         // Navegação
@@ -651,9 +798,10 @@
             // Atualizar dados quando necessário
             if (pageId === 'standings') updateStandings();
             if (pageId === 'matches') updateMatches();
+            if (pageId === 'admin') checkAdminAccess();
         }
 
-        // Funções Admin
+        // Funções Admin - Gerenciamento de Duplas
         function addTeam() {
             const teamName = document.getElementById('team-name').value;
             const player1 = document.getElementById('player1').value;
@@ -664,20 +812,39 @@
                 return;
             }
 
-            if (teams.length >= 5) {
-                alert('Máximo de 5 duplas permitido!');
-                return;
-            }
+            if (editingTeamId) {
+                // Editando time existente
+                const teamIndex = teams.findIndex(t => t.id === editingTeamId);
+                if (teamIndex !== -1) {
+                    teams[teamIndex].name = teamName;
+                    teams[teamIndex].players = [player1, player2];
+                    // Atualizar referências nos matches
+                    matches.forEach(match => {
+                        if (match.team1.id === editingTeamId) match.team1 = teams[teamIndex];
+                        if (match.team2.id === editingTeamId) match.team2 = teams[teamIndex];
+                    });
+                    alert('Dupla editada com sucesso!');
+                }
+                cancelEdit();
+            } else {
+                // Adicionando novo time
+                if (teams.length >= 5) {
+                    alert('Máximo de 5 duplas permitido!');
+                    return;
+                }
 
-            teams.push({
-                id: teams.length + 1,
-                name: teamName,
-                players: [player1, player2],
-                points: 0,
-                wins: 0,
-                losses: 0,
-                games: 0
-            });
+                teams.push({
+                    id: Date.now(), // ID único baseado no timestamp
+                    name: teamName,
+                    players: [player1, player2],
+                    points: 0,
+                    wins: 0,
+                    losses: 0,
+                    games: 0
+                });
+                
+                alert('Dupla adicionada com sucesso!');
+            }
 
             // Salvar dados
             saveData();
@@ -689,8 +856,77 @@
 
             updateTeamsDisplay();
             updateMatchSelects();
+            updateAdminTeamsList();
+        }
+
+        function editTeam(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            editingTeamId = teamId;
+            document.getElementById('team-name').value = team.name;
+            document.getElementById('player1').value = team.players[0];
+            document.getElementById('player2').value = team.players[1];
             
-            alert('Dupla adicionada com sucesso!');
+            document.getElementById('add-team-btn').textContent = 'Salvar Edição';
+            document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+        }
+
+        function cancelEdit() {
+            editingTeamId = null;
+            document.getElementById('team-name').value = '';
+            document.getElementById('player1').value = '';
+            document.getElementById('player2').value = '';
+            document.getElementById('add-team-btn').textContent = 'Adicionar Dupla';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+        }
+
+        function deleteTeam(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            if (!confirm(`Tem certeza que deseja excluir a dupla "${team.name}"?\nIsso também removerá todos os jogos relacionados!`)) {
+                return;
+            }
+
+            // Remover time
+            teams = teams.filter(t => t.id !== teamId);
+            
+            // Remover matches relacionados
+            matches = matches.filter(m => m.team1.id !== teamId && m.team2.id !== teamId);
+
+            saveData();
+            updateTeamsDisplay();
+            updateMatchSelects();
+            updateAdminTeamsList();
+            updateMatches();
+            updateStandings();
+            updateCompletedMatches();
+            
+            alert('Dupla excluída com sucesso!');
+        }
+
+        function updateAdminTeamsList() {
+            const container = document.getElementById('admin-teams-container');
+            
+            if (teams.length === 0) {
+                container.innerHTML = '<p style="color: #ccc;">Nenhuma dupla cadastrada ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = teams.map(team => `
+                <div class="admin-team-item">
+                    <div class="team-info">
+                        <strong>${team.name}</strong><br>
+                        <small>${team.players[0]} • ${team.players[1]}</small><br>
+                        <small style="color: #c89b3c;">Pontos: ${team.points} | V: ${team.wins} | D: ${team.losses}</small>
+                    </div>
+                    <div class="team-actions">
+                        <button class="btn btn-edit btn-small" onclick="editTeam(${team.id})">✏️ Editar</button>
+                        <button class="btn btn-delete btn-small" onclick="deleteTeam(${team.id})">🗑️ Excluir</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function updateTeamsDisplay() {
@@ -730,7 +966,7 @@
                 for (let j = i + 1; j < teams.length; j++) {
                     // Ida
                     matches.push({
-                        id: matchId++,
+                        id: Date.now() + matchId++, // ID único
                         team1: teams[i],
                         team2: teams[j],
                         side1: 'azul',
@@ -741,7 +977,7 @@
                     
                     // Volta
                     matches.push({
-                        id: matchId++,
+                        id: Date.now() + matchId++, // ID único
                         team1: teams[j],
                         team2: teams[i],
                         side1: 'azul',
@@ -757,6 +993,7 @@
 
             updateMatchSelects();
             updateMatches();
+            updateCompletedMatches();
             alert(`${matches.length} confrontos gerados com sucesso!`);
         }
 
@@ -766,10 +1003,12 @@
             
             matchSelect.innerHTML = '<option value="">Selecione um confronto</option>';
             
-            matches.filter(match => !match.played).forEach(match => {
+            // Mostrar todos os matches (jogados e não jogados) para permitir edição
+            matches.forEach(match => {
                 const option = document.createElement('option');
                 option.value = match.id;
-                option.textContent = `${match.team1.name} vs ${match.team2.name} (${match.round})`;
+                const status = match.played ? '✅' : '⏳';
+                option.textContent = `${status} ${match.team1.name} vs ${match.team2.name} (${match.round})`;
                 matchSelect.appendChild(option);
             });
 
@@ -784,6 +1023,14 @@
                         option.textContent = team.name;
                         winnerSelect.appendChild(option);
                     });
+                    
+                    // Se já foi jogado, preencher os dados para edição
+                    if (selectedMatch.played) {
+                        document.getElementById('winner-select').value = selectedMatch.winner.id;
+                        document.getElementById('loser-points').value = selectedMatch.loserPoints;
+                    } else {
+                        document.getElementById('loser-points').value = '';
+                    }
                 }
             });
         }
@@ -802,7 +1049,24 @@
             const winner = teams.find(t => t.id == winnerId);
             const loser = match.team1.id == winnerId ? match.team2 : match.team1;
 
-            // Registrar resultado
+            // Se já foi jogado antes, reverter pontuação anterior
+            if (match.played) {
+                const oldWinner = teams.find(t => t.id === match.winner.id);
+                const oldLoser = teams.find(t => t.id === match.loser.id);
+                
+                if (oldWinner) {
+                    oldWinner.points -= 11;
+                    oldWinner.wins--;
+                    oldWinner.games--;
+                }
+                if (oldLoser) {
+                    oldLoser.points -= match.loserPoints;
+                    oldLoser.losses--;
+                    oldLoser.games--;
+                }
+            }
+
+            // Registrar novo resultado
             match.played = true;
             match.winner = winner;
             match.loser = loser;
@@ -827,7 +1091,41 @@
             document.getElementById('loser-points').value = '';
 
             updateMatchSelects();
+            updateMatches();
+            updateStandings();
+            updateCompletedMatches();
+            updateAdminTeamsList();
+            
             alert('Resultado registrado com sucesso!');
+        }
+
+        function updateCompletedMatches() {
+            const container = document.getElementById('completed-matches');
+            const completedMatches = matches.filter(m => m.played);
+            
+            if (completedMatches.length === 0) {
+                container.innerHTML = '<p style="color: #ccc;">Nenhum jogo realizado ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = completedMatches.map(match => `
+                <div class="match-result-item">
+                    <div>
+                        <strong>${match.winner.name}</strong> ${match.winnerPoints} x ${match.loserPoints} <strong>${match.loser.name}</strong>
+                        <div style="font-size: 0.8rem; color: #ccc;">${match.round} • ${match.team1.name} vs ${match.team2.name}</div>
+                    </div>
+                    <button class="btn btn-edit-result btn-small" onclick="editMatchResult(${match.id})">✏️ Editar</button>
+                </div>
+            `).join('');
+        }
+
+        function editMatchResult(matchId) {
+            const match = matches.find(m => m.id === matchId);
+            if (!match || !match.played) return;
+
+            document.getElementById('match-select').value = matchId;
+            // Trigger change event to populate winner select
+            document.getElementById('match-select').dispatchEvent(new Event('change'));
         }
 
         function updateMatches() {
