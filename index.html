@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneio LoL - ARAM 2v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #c89b3c;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #c89b3c;
+        }
+
+        .admin-btn {
+            background: #c89b3c;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: #f0c040;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .tournament-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tournament-header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: #c89b3c;
+        }
+
+        .tournament-header p {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #c89b3c;
+        }
+
+        .player {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .standings-table th,
+        .standings-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .standings-table th {
+            background: rgba(0, 0, 0, 0.3);
+            color: #c89b3c;
+        }
+
+        .matches-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .match-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-teams {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .match-team {
+            text-align: center;
+        }
+
+        .match-vs {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #c89b3c;
+        }
+
+        .match-info {
+            text-align: right;
+        }
+
+        .match-date {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .admin-panel {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .admin-form {
+            display: grid;
+            gap: 1rem;
+            max-width: 600px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: #c89b3c;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            background: #c89b3c;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #f0c040;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .rules-section {
+            margin-bottom: 2rem;
+        }
+
+        .rules-section h3 {
+            color: #c89b3c;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .rules-list li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .rules-list li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #c89b3c;
+        }
+
+        .scoring-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .scoring-table th,
+        .scoring-table td {
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .scoring-table th {
+            background: rgba(200, 155, 60, 0.2);
+            color: #c89b3c;
+        }
+
+        .score-input {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .champion-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e3c72;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #c89b3c;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .tournament-header h1 {
+                font-size: 2rem;
+            }
+
+            .match-teams {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">🏆 Torneio LoL ARAM 2v2</div>
+            <ul class="nav-links">
+                <li><a href="#home" class="nav-link active">Início</a></li>
+                <li><a href="#standings" class="nav-link">Classificação</a></li>
+                <li><a href="#matches" class="nav-link">Confrontos</a></li>
+                <li><a href="#rules" class="nav-link">Regulamento</a></li>
+                <li><a href="#scoring" class="nav-link">Pontuação</a></li>
+                <li><a href="#admin" class="nav-link admin-btn">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Página Inicial -->
+        <div id="home" class="page active">
+            <div class="tournament-header">
+                <h1>Torneio LoL ARAM 2v2</h1>
+                <p>Confronto épico entre 5 duplas no mapa Howling Abyss</p>
+            </div>
+
+            <div class="card">
+                <h2>Duplas Participantes</h2>
+                <div class="teams-grid" id="teams-container">
+                    <div class="team-card">
+                        <div class="team-name">Aguardando sorteio...</div>
+                        <div class="player">Jogador 1</div>
+                        <div class="player">Jogador 2</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Próximos Jogos</h2>
+                <div class="matches-container" id="next-matches">
+                    <p>Os confrontos serão definidos após o sorteio das duplas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classificação -->
+        <div id="standings" class="page">
+            <div class="card">
+                <h2>Classificação Geral</h2>
+                <table class="standings-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Dupla</th>
+                            <th>Jogos</th>
+                            <th>Vitórias</th>
+                            <th>Derrotas</th>
+                            <th>Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="standings-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #ccc;">
+                                Classificação será atualizada após os primeiros jogos
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Formato da Competição</h2>
+                <div class="rules-section">
+                    <ul class="rules-list">
+                        <li><strong>1º Lugar:</strong> Vai direto para a final</li>
+                        <li><strong>2º vs 3º:</strong> Disputa a segunda vaga na final</li>
+                        <li><strong>4º vs 5º:</strong> Disputa a posição final no ranking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confrontos -->
+        <div id="matches" class="page">
+            <div class="card">
+                <h2>Calendário de Jogos</h2>
+                <div class="matches-container" id="matches-container">
+                    <p>Os confrontos serão organizados após o sorteio das duplas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regulamento -->
+        <div id="rules" class="page">
+            <div class="card">
+                <h2>Regulamento do Torneio</h2>
+                
+                <div class="rules-section">
+                    <h3>Formato da Competição</h3>
+                    <ul class="rules-list">
+                        <li>5 duplas em tabela única</li>
+                        <li>1º colocado vai direto para a final</li>
+                        <li>2º e 3º colocados disputam a segunda vaga na final</li>
+                        <li>4º e 5º colocados jogam para definir posição final</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Regras dos Confrontos</h3>
+                    <ul class="rules-list">
+                        <li>Cada dupla enfrenta as outras duas vezes (ida e volta)</li>
+                        <li>Uma partida no lado azul, outra no lado vermelho</li>
+                        <li>Mapa: Howling Abyss (ARAM)</li>
+                        <li>Partida termina quando o Nexus for destruído</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Regras de Campeões</h3>
+                    <ul class="rules-list">
+                        <li>Nenhum jogador pode repetir campeão durante todo o torneio</li>
+                        <li>Cada jogador usa apenas um campeão de sua escolha</li>
+                        <li>Não há restrições de composição de duplas</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Conduta</h3>
+                    <ul class="rules-list">
+                        <li>Respeito entre todos os participantes</li>
+                        <li>Não é permitido toxicidade ou comportamento antisportivo</li>
+                        <li>Decisões da organização são finais</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema de Pontuação -->
+        <div id="scoring" class="page">
+            <div class="card">
+                <h2>Sistema de Pontuação</h2>
+                <p>A pontuação é baseada na destruição de objetivos durante a partida:</p>
+                
+                <table class="scoring-table">
+                    <thead>
+                        <tr>
+                            <th>Objetivo</th>
+                            <th>Pontos</th>
+                            <th>Quantidade</th>
+                            <th>Total Máximo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Torres T1</td>
+                            <td>1</td>
+                            <td>3</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Torres T2</td>
+                            <td>1</td>
+                            <td>3</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Inibidores</td>
+                            <td>2</td>
+                            <td>1</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Torres do Nexus</td>
+                            <td>2</td>
+                            <td>2</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td>Nexus</td>
+                            <td>3</td>
+                            <td>1</td>
+                            <td>3</td>
+                        </tr>
+                        <tr style="background: rgba(200, 155, 60, 0.2);">
+                            <td><strong>TOTAL</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>11</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="rules-section">
+                    <h3>Como Funciona</h3>
+                    <ul class="rules-list">
+                        <li>A dupla vencedora sempre ganha 11 pontos (todos os objetivos)</li>
+                        <li>A dupla perdedora ganha pontos pelos objetivos que conseguir destruir</li>
+                        <li>No final do torneio, a dupla com mais pontos fica em 1º lugar</li>
+                        <li>Em caso de empate, considera-se o confronto direto</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Admin -->
+        <div id="admin" class="page">
+            <div class="admin-panel">
+                <h2>Painel do Organizador</h2>
+                
+                <div class="card">
+                    <h3>Cadastrar Duplas</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Nome da Dupla:</label>
+                            <input type="text" id="team-name" placeholder="Ex: Dragons">
+                        </div>
+                        <div class="form-group">
+                            <label>Jogador 1:</label>
+                            <input type="text" id="player1" placeholder="Nome do jogador 1">
+                        </div>
+                        <div class="form-group">
+                            <label>Jogador 2:</label>
+                            <input type="text" id="player2" placeholder="Nome do jogador 2">
+                        </div>
+                        <button class="btn" onclick="addTeam()">Adicionar Dupla</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Registrar Resultado do Jogo</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Selecionar Confronto:</label>
+                            <select id="match-select">
+                                <option value="">Selecione um confronto</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Dupla Vencedora:</label>
+                            <select id="winner-select">
+                                <option value="">Selecione o vencedor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pontos da Dupla Perdedora:</label>
+                            <input type="number" id="loser-points" min="0" max="10" placeholder="0-10">
+                        </div>
+                        <button class="btn" onclick="registerResult()">Registrar Resultado</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Gerar Confrontos</h3>
+                    <p>Após cadastrar todas as 5 duplas, clique para gerar automaticamente todos os confrontos:</p>
+                    <button class="btn" onclick="generateMatches()">Gerar Todos os Confrontos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados do torneio com salvamento persistente
+        let teams = JSON.parse(localStorage.getItem('tournament_teams')) || [];
+        let matches = JSON.parse(localStorage.getItem('tournament_matches')) || [];
+        let results = JSON.parse(localStorage.getItem('tournament_results')) || [];
+
+        // Função para salvar dados
+        function saveData() {
+            localStorage.setItem('tournament_teams', JSON.stringify(teams));
+            localStorage.setItem('tournament_matches', JSON.stringify(matches));
+            localStorage.setItem('tournament_results', JSON.stringify(results));
+        }
+
+        // Navegação
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = link.getAttribute('href').substring(1);
+                showPage(target);
+                
+                // Atualizar link ativo
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // Atualizar dados quando necessário
+            if (pageId === 'standings') updateStandings();
+            if (pageId === 'matches') updateMatches();
+        }
+
+        // Funções Admin
+        function addTeam() {
+            const teamName = document.getElementById('team-name').value;
+            const player1 = document.getElementById('player1').value;
+            const player2 = document.getElementById('player2').value;
+
+            if (!teamName || !player1 || !player2) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            if (teams.length >= 5) {
+                alert('Máximo de 5 duplas permitido!');
+                return;
+            }
+
+            teams.push({
+                id: teams.length + 1,
+                name: teamName,
+                players: [player1, player2],
+                points: 0,
+                wins: 0,
+                losses: 0,
+                games: 0
+            });
+
+            // Salvar dados
+            saveData();
+
+            // Limpar formulário
+            document.getElementById('team-name').value = '';
+            document.getElementById('player1').value = '';
+            document.getElementById('player2').value = '';
+
+            updateTeamsDisplay();
+            updateMatchSelects();
+            
+            alert('Dupla adicionada com sucesso!');
+        }
+
+        function updateTeamsDisplay() {
+            const container = document.getElementById('teams-container');
+            
+            if (teams.length === 0) {
+                container.innerHTML = `
+                    <div class="team-card">
+                        <div class="team-name">Aguardando sorteio...</div>
+                        <div class="player">Jogador 1</div>
+                        <div class="player">Jogador 2</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = teams.map(team => `
+                <div class="team-card">
+                    <div class="team-name">${team.name}</div>
+                    <div class="player">${team.players[0]}</div>
+                    <div class="player">${team.players[1]}</div>
+                </div>
+            `).join('');
+        }
+
+        function generateMatches() {
+            if (teams.length !== 5) {
+                alert('É necessário ter exatamente 5 duplas cadastradas!');
+                return;
+            }
+
+            matches = [];
+            let matchId = 1;
+
+            // Gerar confrontos ida e volta
+            for (let i = 0; i < teams.length; i++) {
+                for (let j = i + 1; j < teams.length; j++) {
+                    // Ida
+                    matches.push({
+                        id: matchId++,
+                        team1: teams[i],
+                        team2: teams[j],
+                        side1: 'azul',
+                        side2: 'vermelho',
+                        played: false,
+                        round: 'ida'
+                    });
+                    
+                    // Volta
+                    matches.push({
+                        id: matchId++,
+                        team1: teams[j],
+                        team2: teams[i],
+                        side1: 'azul',
+                        side2: 'vermelho',
+                        played: false,
+                        round: 'volta'
+                    });
+                }
+            }
+
+            // Salvar dados
+            saveData();
+
+            updateMatchSelects();
+            updateMatches();
+            alert(`${matches.length} confrontos gerados com sucesso!`);
+        }
+
+        function updateMatchSelects() {
+            const matchSelect = document.getElementById('match-select');
+            const winnerSelect = document.getElementById('winner-select');
+            
+            matchSelect.innerHTML = '<option value="">Selecione um confronto</option>';
+            
+            matches.filter(match => !match.played).forEach(match => {
+                const option = document.createElement('option');
+                option.value = match.id;
+                option.textContent = `${match.team1.name} vs ${match.team2.name} (${match.round})`;
+                matchSelect.appendChild(option);
+            });
+
+            matchSelect.addEventListener('change', () => {
+                const selectedMatch = matches.find(m => m.id == matchSelect.value);
+                winnerSelect.innerHTML = '<option value="">Selecione o vencedor</option>';
+                
+                if (selectedMatch) {
+                    [selectedMatch.team1, selectedMatch.team2].forEach(team => {
+                        const option = document.createElement('option');
+                        option.value = team.id;
+                        option.textContent = team.name;
+                        winnerSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function registerResult() {
+            const matchId = document.getElementById('match-select').value;
+            const winnerId = document.getElementById('winner-select').value;
+            const loserPoints = parseInt(document.getElementById('loser-points').value) || 0;
+
+            if (!matchId || !winnerId) {
+                alert('Selecione o confronto e o vencedor!');
+                return;
+            }
+
+            const match = matches.find(m => m.id == matchId);
+            const winner = teams.find(t => t.id == winnerId);
+            const loser = match.team1.id == winnerId ? match.team2 : match.team1;
+
+            // Registrar resultado
+            match.played = true;
+            match.winner = winner;
+            match.loser = loser;
+            match.winnerPoints = 11;
+            match.loserPoints = loserPoints;
+
+            // Atualizar estatísticas das duplas
+            winner.points += 11;
+            winner.wins++;
+            winner.games++;
+
+            loser.points += loserPoints;
+            loser.losses++;
+            loser.games++;
+
+            // Salvar dados
+            saveData();
+
+            // Limpar formulário
+            document.getElementById('match-select').value = '';
+            document.getElementById('winner-select').value = '';
+            document.getElementById('loser-points').value = '';
+
+            updateMatchSelects();
+            alert('Resultado registrado com sucesso!');
+        }
+
+        function updateMatches() {
+            const container = document.getElementById('matches-container');
+            
+            if (matches.length === 0) {
+                container.innerHTML = '<p>Os confrontos serão organizados após o sorteio das duplas.</p>';
+                return;
+            }
+
+            container.innerHTML = matches.map(match => `
+                <div class="match-card">
+                    <div class="match-teams">
+                        <div class="match-team">
+                            <strong>${match.team1.name}</strong>
+                            <div style="font-size: 0.8rem; color: #c89b3c;">(Lado ${match.side1})</div>
+                        </div>
+                        <div class="match-vs">VS</div>
+                        <div class="match-team">
+                            <strong>${match.team2.name}</strong>
+                            <div style="font-size: 0.8rem; color: #c89b3c;">(Lado ${match.side2})</div>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div style="margin-bottom: 0.5rem;">
+                            ${match.round === 'ida' ? '🏁 Ida' : '🔄 Volta'}
+                        </div>
+                        <div class="match-date">
+                            ${match.played ? 
+                                `✅ ${match.winner.name} venceu (${match.winnerPoints}-${match.loserPoints})` : 
+                                '⏳ Aguardando'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStandings() {
+            const tbody = document.getElementById('standings-body');
+            
+            if (teams.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #ccc;">
+                            Classificação será atualizada após o cadastro das duplas
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Ordenar por pontos (decrescente)
+            const sortedTeams = [...teams].sort((a, b) => b.points - a.points);
+            
+            tbody.innerHTML = sortedTeams.map((team, index) => `
+                <tr>
+                    <td>${index + 1}º</td>
+                    <td><strong>${team.name}</strong></td>
+                    <td>${team.games}</td>
+                    <td>${team.wins}</td>
+                    <td>${team.losses}</td>
+                    <td><strong>${team.points}</strong></td>
+                </tr>
+            `).join('');
+        }
+
+        // Inicializar - carregar dados salvos
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTeamsDisplay();
+            updateMatchSelects();
+            updateMatches();
+            updateStandings();
+        });
+    </script>
+</body>
+</html>
